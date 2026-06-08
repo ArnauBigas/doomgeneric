@@ -2,6 +2,9 @@
 
 #include "doomgeneric.h"
 
+#include "m_argv.h"
+#include "i_system.h"
+
 #include <sys/time.h>
 #include <unistd.h>
 
@@ -141,14 +144,14 @@ static void *NetworkThread(void *arg) {
         }
 
         last_seq = cur_frame;
-
-        DG_SleepMs(300);
     }
 
     return NULL;
 }
 
 static void NetworkInit(char *addr) {
+    printf("Connecting to %s:6969\n", addr);
+
     g_sock = socket(AF_INET, SOCK_DGRAM, 0);
 
     int sndbuf = 8192;
@@ -183,7 +186,16 @@ void DG_PaletteUpdate(uint32_t *colors) {
 
 void DG_Init()
 {   
-    NetworkInit("localhost");
+	int param = M_CheckParmWithArgs("-ip", 1);
+    char *addr;
+
+	if (param) {
+		addr = myargv[param + 1];
+	} else {
+        I_Error("No ip addr set!\n");
+    }
+
+    NetworkInit(addr);
 }
 
 void DG_DrawFrame()
