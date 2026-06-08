@@ -360,29 +360,8 @@ void I_FinishUpdate (void)
 
     while (y--)
     {
-        int i;
-        for (i = 0; i < fb_scaling; i++) {
-            line_out += x_offset;
-#ifdef CMAP256
-            if (fb_scaling == 1) {
-                memcpy(line_out, line_in, SCREENWIDTH); /* fb_width is bigger than Doom SCREENWIDTH... */
-            } else {
-                int j;
-
-                for (j = 0; j < SCREENWIDTH; j++) {
-                    int k;
-                    for (k = 0; k < fb_scaling; k++) {
-                        line_out[j * fb_scaling + k] = line_in[j];
-                    }
-                }
-            }
-#else
-            //cmap_to_rgb565((void*)line_out, (void*)line_in, SCREENWIDTH);
-            //cmap_to_fb((void*)line_out, (void*)line_in, SCREENWIDTH);
-            cmap_precalc((void*)line_out, (void*)line_in, SCREENWIDTH);
-#endif
-            line_out += (SCREENWIDTH * fb_scaling * (s_Fb.bits_per_pixel/8)) + x_offset_end;
-        }
+        memcpy(line_out, line_in, SCREENWIDTH);
+        line_out += SCREENWIDTH;
         line_in += SCREENWIDTH;
     }
 
@@ -408,7 +387,7 @@ void I_ReadScreen (byte* scr)
 void I_SetPalette (byte* palette)
 {
 	int i;
-	col_t* c;
+	/*col_t* c;
 
 	for (i = 0; i < 256; i++)
 	{
@@ -419,18 +398,20 @@ void I_SetPalette (byte* palette)
 									   gammatable[usegamma][c->b]);
 
 		palette += 3;
-	}
+	}*/
     
 
     /* performance boost:
      * map to the right pixel format over here! */
-    /*
+    
     for (i=0; i<256; ++i ) {
         colors[i].a = 0;
         colors[i].r = gammatable[usegamma][*palette++];
         colors[i].g = gammatable[usegamma][*palette++];
         colors[i].b = gammatable[usegamma][*palette++];
-    }*/
+    }
+
+    DG_PaletteUpdate((uint32_t*) colors);
 
 #ifdef CMAP256
 
