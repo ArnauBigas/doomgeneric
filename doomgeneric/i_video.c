@@ -202,6 +202,25 @@ void cmap_to_fb(uint8_t *out, uint8_t *in, int in_pixels)
     }
 }
 
+void cmap_precalc(uint8_t *out, uint8_t *in, int in_pixels)
+{
+    int i, k;
+    uint16_t c;
+    uint32_t pix;
+
+    for (i = 0; i < in_pixels; i++)
+    {
+        c = rgb565_palette[*in];  // R:8 G:8 B:8
+
+        for (k = 0; k < fb_scaling; k++) {
+            *(uint16_t *)out = c;
+            out += 2;
+        }
+
+        in++;
+    }
+}
+
 void I_InitGraphics (void)
 {
     int i, gfxmodeparm;
@@ -359,7 +378,8 @@ void I_FinishUpdate (void)
             }
 #else
             //cmap_to_rgb565((void*)line_out, (void*)line_in, SCREENWIDTH);
-            cmap_to_fb((void*)line_out, (void*)line_in, SCREENWIDTH);
+            //cmap_to_fb((void*)line_out, (void*)line_in, SCREENWIDTH);
+            cmap_precalc((void*)line_out, (void*)line_in, SCREENWIDTH);
 #endif
             line_out += (SCREENWIDTH * fb_scaling * (s_Fb.bits_per_pixel/8)) + x_offset_end;
         }
@@ -388,29 +408,29 @@ void I_ReadScreen (byte* scr)
 void I_SetPalette (byte* palette)
 {
 	int i;
-	//col_t* c;
+	col_t* c;
 
-	//for (i = 0; i < 256; i++)
-	//{
-	//	c = (col_t*)palette;
+	for (i = 0; i < 256; i++)
+	{
+		c = (col_t*)palette;
 
-	//	rgb565_palette[i] = GFX_RGB565(gammatable[usegamma][c->r],
-	//								   gammatable[usegamma][c->g],
-	//								   gammatable[usegamma][c->b]);
+		rgb565_palette[i] = GFX_RGB565(gammatable[usegamma][c->r],
+									   gammatable[usegamma][c->g],
+									   gammatable[usegamma][c->b]);
 
-	//	palette += 3;
-	//}
+		palette += 3;
+	}
     
 
     /* performance boost:
      * map to the right pixel format over here! */
-
+    /*
     for (i=0; i<256; ++i ) {
         colors[i].a = 0;
         colors[i].r = gammatable[usegamma][*palette++];
         colors[i].g = gammatable[usegamma][*palette++];
         colors[i].b = gammatable[usegamma][*palette++];
-    }
+    }*/
 
 #ifdef CMAP256
 
